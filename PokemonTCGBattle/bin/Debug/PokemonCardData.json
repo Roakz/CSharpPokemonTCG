@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Regieleki V",
+    "HP": "200",
+    "Attacks": [
+      {
+        "name": "Switching Bolt",
+        "description": "Short bursts of electrifying bolts",
+        "damage": "30"
+      },
+      {
+        "name": "Lightning Wall",
+        "description": "A Wall of lightning smashes down on your opponent.",
+        "damage": "100"
+      }
+    ],
+    "Type": "Electric"
+  }
+]
