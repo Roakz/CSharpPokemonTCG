@@ -52,7 +52,6 @@ namespace PokemonTCGBattle
                 Damage = damage;
                 Name = name;
             }
-
         }
 
         public class Pokemon
@@ -73,7 +72,6 @@ namespace PokemonTCGBattle
                 Weakness = weakness;
                 Resistance = resistance;
             }
-
 
             public override string ToString()
             {
@@ -111,7 +109,6 @@ namespace PokemonTCGBattle
                     case PokemonType.Water:
                         return PokemonType.Electric;
                 }
-
                 return null;
             }
             public static PokemonType? CalculatePokemonResistance(PokemonType pType)
@@ -139,7 +136,6 @@ namespace PokemonTCGBattle
                     case PokemonType.Water:
                         return null;
                 }
-
                 return null;
             }
 
@@ -173,7 +169,6 @@ namespace PokemonTCGBattle
         }
 
         public class Card {
-
             public Pokemon CardsPokemon { get; private set; }
 
             public Card(Pokemon pokemon)
@@ -184,24 +179,25 @@ namespace PokemonTCGBattle
 
         public class Dealer
         {
-            private List<Card> cardList;
-
-            public Dealer(List<Card> cards)
+            public Pokemon[] Deal(Pokemon[] pokemonArray, Random rnd)
             {
-                cardList = cards;
-            }
+                Pokemon[] dealerArray = new Pokemon[5];
+                List<int> selectedIntList = new List<int>();
 
-            public Card[] Deal()
-            {
-                int randInt;
-                Card[] dealerArray = new Card[5];
-                //Randomize numbers between 0 and list length. Use that index to select a pokemon card and add it to the dealers array.
-                // Test me!!
-                Random rnd = new Random();
-                for(int i = 0; i < 5; i++){
-                    randInt = rnd.Next(0, cardList.Count - 1);
-                    Console.WriteLine(randInt);
+                while (selectedIntList.Count() < 5)
+                {
+                    int possibleIndex = rnd.Next(pokemonArray.Length);
+                    if(selectedIntList.Contains(possibleIndex) == false)
+                    {
+                        selectedIntList.Add(possibleIndex);
+                    }
                 }
+
+                foreach (int i in selectedIntList)
+                {
+                    dealerArray[selectedIntList.IndexOf(i)] = pokemonArray[i];
+                }
+
                 return dealerArray;
             }
         }
@@ -242,17 +238,15 @@ namespace PokemonTCGBattle
 
                     count++;
                 }
-              
                 return pokemonArray;
             }
         }
 
         static void Main(string[] args)
         {
-
-            Card[] userCards;
-            Card[] computerCards;
-            List<Card> cardList;
+            Pokemon[] userPokemon;
+            Pokemon[] computerPokemon;
+            
             const string fileName = @"\PokemonCardData.json";
             const string path = @"C:\Users\rory_\source\repos\PokemonTCGBattle\";
             JsonConverter jsonConverter = new JsonConverter(path, fileName);
@@ -266,14 +260,23 @@ namespace PokemonTCGBattle
                Console.WriteLine();
             }*/
             //Console.Read();
-
-            cardList = Card.GenerateCards(pokemonArray);
+                        
             Menu.PrintMenu();
-            Dealer dealer = new Dealer(cardList);
+            Random rnd = new Random();
+            Dealer dealer = new Dealer();
+            userPokemon = dealer.Deal(pokemonArray, rnd);
+            computerPokemon = dealer.Deal(pokemonArray, rnd);
 
-            //Working on deal method
-            userCards = dealer.Deal();
-            computerCards = dealer.Deal();
+            //Debugging Code
+            /*foreach(Pokemon p in userPokemon)
+            {
+                Console.WriteLine(p.Name);
+            }
+            Console.WriteLine("--------------------------------------------");
+            foreach(Pokemon p in computerPokemon)
+            {
+                Console.WriteLine(p.Name);
+            }*/
             Console.Read();
         }
     }
