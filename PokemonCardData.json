@@ -49,5 +49,254 @@
       }
     ],
     "type": "Fire"
+  },
+  {
+    "name": "Typhlosion V",
+    "hp": "210",
+    "attacks": [
+      {
+        "Name": "Singe",
+        "Description": "A small flame singes the opponent",
+        "Damage": "10"
+      },
+      {
+        "Name": "Petrifying Flame",
+        "Description": "A large luminescent flame with a psychic purple hue",
+        "Damage": "120"
+      }
+    ],
+    "type": "Psychic"
+  },
+  {
+    "name": "Iron Boulder",
+    "hp": "140",
+    "attacks": [
+      {
+        "Name": "Adjusted Horn",
+        "Description": "A large horn drives into the opponent",
+        "Damage": "170"
+      }
+    ],
+    "type": "Psychic"
+  },
+  {
+    "name": "Haxorus",
+    "hp": "170",
+    "attacks": [
+      {
+        "Name": "Bring down the axe",
+        "Description": "A large axe, like, karate chop",
+        "Damage": "10"
+      },
+      {
+        "Name": "Dragon Pulse",
+        "Description": "A large pulse of dragon energy beams into the opponent",
+        "Damage": "230"
+      }
+    ],
+    "type": "Dragon"
+  },
+  {
+    "name": "Dialga",
+    "hp": "130",
+    "attacks": [
+      {
+        "Name": "Buster Tail",
+        "Description": "The dragon tail slaps down with a release of energy",
+        "Damage": "130"
+      }
+    ],
+    "type": "Dragon"
+  },
+  {
+    "name": "Melmetal EX",
+    "hp": "280",
+    "attacks": [
+      {
+        "Name": "Iron Swing",
+        "Description": "Melmetal swings his iron fist into the opponent",
+        "Damage": "200"
+      }
+    ],
+    "type": "Metal"
+  },
+  {
+    "name": "Zacian",
+    "hp": "120",
+    "attacks": [
+      {
+        "Name": "Iron Roar",
+        "Description": "An unbearable roar inflicting damage on the opponent",
+        "Damage": "30"
+      },
+      {
+        "Name": "Brave blade",
+        "Description": "Zacian flies through the air and slices the opponent with it's blade",
+        "Damage": "130"
+      }
+    ],
+    "type": "Metal"
+  },
+  {
+    "name": "Conkeldurr V",
+    "hp": "230",
+    "attacks": [
+      {
+        "Name": "Counter",
+        "Description": "a quick counter knock to the opponent",
+        "Damage": "40"
+      },
+      {
+        "Name": "Dynamic Punch",
+        "Description": "A surprisingly agile set of fierce punches to the opponent",
+        "Damage": "180"
+      }
+    ],
+    "type": "Punch"
+  },
+  {
+    "name": "Great Tusk",
+    "hp": "140",
+    "attacks": [
+      {
+        "Name": "Lunge out",
+        "Description": "Great Tusk lunges and knocks the opponent",
+        "Damage": "30"
+      },
+      {
+        "Name": "Wrathful charge",
+        "Description": "A charge into the oppponent with all it's might",
+        "Damage": "160"
+      }
+    ],
+    "type": "Punch"
+  },
+  {
+    "name": "Pangoro",
+    "hp": "140",
+    "attacks": [
+      {
+        "Name": "Pull",
+        "Description": "Pull your opponent to the ground",
+        "Damage": "30"
+      },
+      {
+        "Name": "Tantrum",
+        "Description": "A thrashing tantrum",
+        "Damage": "160"
+      }
+    ],
+    "type": "Dark"
+  },
+  {
+    "name": "Hydreigon",
+    "hp": "180",
+    "attacks": [
+      {
+        "Name": "Dark Cutter",
+        "Description": "Beams of dark energy cut at the opponent",
+        "Damage": "160"
+      }
+    ],
+    "type": "Dark"
+  },
+  {
+    "name": "Slaking EX",
+    "hp": "340",
+    "attacks": [
+      {
+        "Name": "Great Swing",
+        "Description": "Slaking swings around and generates unbelievable force smashing its opponent",
+        "Damage": "280"
+      }
+    ],
+    "type": "Normal"
+  },
+  {
+    "name": "Cyclizer",
+    "hp": "120",
+    "attacks": [
+      {
+        "Name": "Ram",
+        "Description": "Cyclizer rams the opponent",
+        "Damage": "30"
+      },
+      {
+        "Name": "Driving Budy",
+        "Description": "Cyclizer gains exponential speed and drives into the opponent",
+        "Damage": "140"
+      }
+    ],
+    "type": "Normal"
+  },
+  {
+    "name": "Spidops EX",
+    "hp": "260",
+    "attacks": [
+      {
+        "Name": "Wire Hang",
+        "Description": "Spidops wraps the opponent in web as sharp as wire",
+        "Damage": "270"
+      }
+    ],
+    "type": "Grass"
+  },
+  {
+    "name": "IvySaur",
+    "hp": "100",
+    "attacks": [
+      {
+        "Name": "Razor leaf",
+        "Description": "A whirl of leaves gain velocity and slice into the opponent",
+        "Damage": "60"
+      }
+    ],
+    "type": "Grass"
+  },
+  {
+    "name": "Greninja EX",
+    "hp": "300",
+    "attacks": [
+      {
+        "Name": "Shifting Shuriken",
+        "Description": "Launch at the oppoenent with Greninjas Shuriken",
+        "Damage": "200"
+      }
+    ],
+    "type": "Water"
+  },
+  {
+    "name": "Walking Wake",
+    "hp": "130",
+    "attacks": [
+      {
+        "Name": "Aurora Gain",
+        "Description": "An Aurora of energy hammers the opponent",
+        "Damage": "20"
+      },
+      {
+        "Name": "Undulating Slice",
+        "Description": "Walking Wake slices at the opponent with undulating motion",
+        "Damage": "180"
+      }
+    ],
+    "type": "Water"
+  },
+  {
+    "name": "Centiskorch",
+    "hp": "130",
+    "attacks": [
+      {
+        "Name": "Steady Firebreathing",
+        "Description": "A steady breath of fire",
+        "Damage": "30"
+      },
+      {
+        "Name": "Heat Blast",
+        "Description": "Internal heat blasts out at the opponent",
+        "Damage": "100"
+      }
+    ],
+    "type": "Fire"
   }
 ]
