@@ -4,16 +4,50 @@
     "hp": "200",
     "attacks": [
       {
-        "name": "Switching Bolt",
-        "description": "Short bursts of electrifying bolts",
-        "damage": "30"
+        "Name": "Switching Bolt",
+        "Description": "Short bursts of electrifying bolts",
+        "Damage": "30"
       },
       {
-        "name": "Lightning Wall",
-        "description": "A Wall of lightning smashes down on your opponent.",
-        "damage": "100"
+        "Name": "Lightning Wall",
+        "Description": "A Wall of lightning smashes down on your opponent.",
+        "Damage": "100"
       }
     ],
     "type": "Electric"
+  },
+  {
+    "name": "Pikachu",
+    "hp": "70",
+    "attacks": [
+      {
+        "Name": "Pika Bolt",
+        "Description": "A small bolt of lightning shocks the opponent",
+        "Damage": "30"
+      },
+      {
+        "Name": "Zippidy Zap",
+        "Description": "Pikachu weaves through the air boosted by an aura of lightning",
+        "Damage": "70"
+      }
+    ],
+    "type": "Electric"
+  },
+  {
+    "name": "Arcanine EX",
+    "hp": "280",
+    "attacks": [
+      {
+        "Name": "Raging Claws",
+        "Description": "Arcanine claws the opponent in a rage",
+        "Damage": "30"
+      },
+      {
+        "Name": "Bright Flame",
+        "Description": "A blinding bright flame hammers the opponent",
+        "Damage": "250"
+      }
+    ],
+    "type": "Fire"
   }
 ]
