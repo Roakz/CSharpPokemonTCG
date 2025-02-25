@@ -173,27 +173,12 @@ namespace PokemonTCGBattle
         }
 
         public class Card {
-            public string Name { get; private set; }
-            public int HP { get; private set; }
-            public Attack[] Attacks {get; private set;}
-            public PokemonType Type { get; private set; }
-            public string Weakness { get; private set; }
-            public string Resistance { get; private set; }
 
-            public Card(string cardName, int PokemonHp, object[] pokemonAttacks, PokemonType Type)
+            public Pokemon CardsPokemon { get; private set; }
+
+            public Card(Pokemon pokemon)
             {
-
-            }
-
-            public static List<Card> GenerateCards(Pokemon[] pokemonArray)
-            {
-                List<Card> cardList = new List<Card>();
-               foreach (Pokemon p in pokemonArray)
-                {
-                  Card card = new Card(p.Name, p.HP, p.Attacks, p.PType);
-                  cardList.Add(card);
-                }
-               return cardList;
+                CardsPokemon = pokemon;
             }
         }
 
