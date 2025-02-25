@@ -74,6 +74,18 @@ namespace PokemonTCGBattle
                 Resistance = resistance;
             }
 
+
+            public override string ToString()
+            {
+                return $"Name: {Name}\n" +
+                    $"HP: {HP}\n" +
+                    $"Attack[0]: {Attacks[0]}\n" +
+                    $"Attack[1]: Name - {Attacks[0].Name}, Description - {Attacks[0].Description}, Damage - {Attacks[0].Damage}\n" +
+                    $"PType: Name - {Attacks[1].Name}, Description - {Attacks[1].Description}, Damage - {Attacks[1].Damage}\n" +
+                    $"Weakness?: {Weakness}\n" +
+                    $"Resistance?: {Resistance}";
+            }
+
             public static PokemonType? CalculatePokemonWeakness(PokemonType pType)
             {
                 switch (pType)
@@ -261,11 +273,15 @@ namespace PokemonTCGBattle
             JsonConverter jsonConverter = new JsonConverter(path, fileName);
 
             Pokemon[] pokemonArray = jsonConverter.JsonToPokemonArray();
-            foreach(Pokemon p in pokemonArray)
+
+            //Debugging Code
+            /*foreach(Pokemon p in pokemonArray)
             {
-                Console.WriteLine(p.ToString());
-            }
-            Console.Read();
+               Console.WriteLine(p.ToString());
+               Console.WriteLine();
+            }*/
+            //Console.Read();
+
             cardList = Card.GenerateCards(pokemonArray);
             Menu.PrintMenu();
             Dealer dealer = new Dealer(cardList);
