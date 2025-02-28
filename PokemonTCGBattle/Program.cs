@@ -1,28 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.IO;
+using Xunit;
 
 namespace PokemonTCGBattle
 {
     class Program
     {
+        public static void WriteSlowly(string message, int timeDelay)
+        {
+            foreach (char c in message)
+            {
+                Console.Write(c);
+                Thread.Sleep(timeDelay);
+            }
+        }
         class Menu
         {
             public static void PrintMenu()
             {
                 Console.WriteLine("Welcome to Pokemon TCG Console Game!!!\n" +
-                    "Press any key to begin to play!");
+                    "\n Press any key to begin to play!");
                 Console.Read();
                 Console.Clear();
-                Console.WriteLine("You will be dealt 5 5andom pokemon cards. The computer will also be dealt 5 random cards.\n" +
-                    "Then the battle will begin!!!\n" +
+                Console.WriteLine("You will be dealt 5 Pokemon cards at random to battle the computer.\n\n" +
+                    "Then the battle will begin!!!\n\n" +
                     "Press any key to recieve your cards.");
                 Console.Read();
+                Console.Clear();
+            }
+
+            public static void PrintUserCards(Card[] userCards)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Console.Write("Loading your cards ");
+                    WriteSlowly("...", 800);
+                    Console.Clear();
+                }
+                Console.WriteLine("Your cards are: ");
+                foreach (Card card in userCards)
+                {
+                    card.PrintCard();
+                }
             }
         }
 
@@ -175,6 +201,26 @@ namespace PokemonTCGBattle
             {
                 CardsPokemon = pokemon;
             }
+
+            public void PrintCard()
+            {
+                string cardDelineator = "-------------------------------------------\n";
+                string miniDeliniator = "-----\n";
+
+                WriteSlowly(cardDelineator, 20);
+                Console.WriteLine($"{CardsPokemon.Name} - HP:{CardsPokemon.HP}\n");
+                WriteSlowly(miniDeliniator, 20);
+                foreach (Attack attack in CardsPokemon.Attacks){
+                    WriteSlowly(attack.Name + "\n\n", 20);
+                    Console.WriteLine(attack.Description + "\n");
+                    Console.WriteLine($"\nDMG:{attack.Damage}");
+                    WriteSlowly(miniDeliniator, 20);
+                }
+                Console.WriteLine($"Type: {CardsPokemon.PType}\n" +
+                 $"Weakness: {CardsPokemon.Weakness}\n" +
+                 $"Resistance: {CardsPokemon.Resistance}\n");
+                WriteSlowly(cardDelineator, 20);
+            }
         }
 
         public class Dealer
@@ -242,6 +288,24 @@ namespace PokemonTCGBattle
             }
         }
 
+        public class User
+        {
+            public Card[] UserCards { get; private set; }
+            public User(Card[] userCards)
+            {
+                UserCards = userCards;
+            }
+        }
+
+        public class Computer
+        {
+            public Card[] ComputerCards { get; private set; }
+            public Computer(Card[] computerCards)
+            {
+                ComputerCards = computerCards;
+            }
+        }
+
         static void Main(string[] args)
         {
             Pokemon[] userPokemon;
@@ -266,6 +330,18 @@ namespace PokemonTCGBattle
             Dealer dealer = new Dealer();
             userPokemon = dealer.Deal(pokemonArray, rnd);
             computerPokemon = dealer.Deal(pokemonArray, rnd);
+            Card[] userCards = new Card[5];
+            Card[] computerCards = new Card[5];
+            for (int i = 0; i < 5; i++)
+            {
+                userCards[i] = new Card(userPokemon[i]);
+                computerCards[i] = new Card(computerPokemon[i]);
+            }
+            User user = new User(userCards);
+            Computer computer = new Computer(computerCards);
+            Menu.PrintUserCards(userCards);
+            
+
 
             //Debugging Code
             /*foreach(Pokemon p in userPokemon)
