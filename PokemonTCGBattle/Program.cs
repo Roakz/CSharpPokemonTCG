@@ -21,6 +21,15 @@ namespace PokemonTCGBattle
                 Thread.Sleep(timeDelay);
             }
         }
+
+        //Game menu should contain view pokemon list
+        //Pokemon list should show each pokemon and its hp or fainted status
+        //view computer pokemon list and their hp or fainted status
+        //switch pokemon (this counts as a turn)
+        //choose attack(this will be your turn and will be relevant to your current card)
+        //apply potion(each player gets 2)
+        //retreat ... you lose start menu appears after loser message
+        //exit game ... game exits
         class Menu
         {
             public static void PrintMenu()
@@ -36,6 +45,58 @@ namespace PokemonTCGBattle
                 Console.Clear();
             }
 
+            public static void printGameMenu(User user, Computer computer, GameController gameController)
+            {
+                Console.WriteLine("\n");
+                Console.WriteLine("Game Menu:\n" +
+                    "1. Print Your Cards\n" +
+                    "2. View Pokemon List\n" +
+                    "3. View Computer Pokemon List\n" +
+                    "4. Switch Pokemon\n" +
+                    "5. Choose Attack\n" +
+                    "6. Apply Potion\n" +
+                    "7. Retreat\n" +
+                    "8. Exit Game\n" +
+                    "Please enter the number of the option you would like to select: ");
+
+                string userChoice = Console.ReadLine();
+                Console.Clear();
+                switch (userChoice)
+                {
+                    case "1":
+                        PrintUserCards(user.UserCards);
+                        printGameMenu(user, computer, gameController);
+                        break;
+                    case "2":
+                        user.PrintPokemonList();
+                        printGameMenu(user, computer, gameController);
+                        break;
+                    case "3":
+                        computer.PrintPokemonList();
+                        printGameMenu(user, computer, gameController);
+                        break;
+                    case "4":
+                        gameController.SwitchPokemon(user);
+                        break;
+                    case "5":
+                        gameController.ChooseAttack(user);
+                        break;
+                    case "6":
+                        gameController.ApplyPotion(user);
+                        break;
+                    case "7":
+                        gameController.Retreat();
+                        break;
+                    case "8":
+                        gameController.ExitGame();
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
+                        printGameMenu(user, computer, gameController);
+                        break;
+                }
+            }
+
             public static void PrintUserCards(Card[] userCards)
             {
                 for (int i = 0; i < 2; i++)
@@ -49,6 +110,38 @@ namespace PokemonTCGBattle
                 {
                     card.PrintCard();
                 }
+            }
+        }
+
+        public class GameController
+        {
+
+            public Card CurrentUserCard { get; set; }
+            public Card CurrentComputerCard { get; set; }
+            public GameController(Card currentUserCard, Card currentComputerCard)
+            {
+                CurrentUserCard = currentUserCard;
+                CurrentComputerCard = currentComputerCard;
+            }
+            public void SwitchPokemon(User user)
+            {
+                
+            }
+            public void ChooseAttack(User user)
+            {
+                
+            }
+            public void ApplyPotion(User user)
+            {
+                
+            }
+            public void Retreat()
+            {
+                
+            }
+            public void ExitGame()
+            {
+                Environment.Exit(0);
             }
         }
 
@@ -88,6 +181,7 @@ namespace PokemonTCGBattle
             public PokemonType PType { get; private set; }
             public PokemonType? Weakness { get; private set; }
             public PokemonType? Resistance { get; private set; }
+            public string Status { get; set; }
 
             public Pokemon(string name, int hp, Attack[] attacks, PokemonType pokemonType, PokemonType? weakness, PokemonType? resistance)
             {
@@ -97,6 +191,7 @@ namespace PokemonTCGBattle
                 PType = pokemonType;
                 Weakness = weakness;
                 Resistance = resistance;
+                Status = "Standing";
             }
 
             public override string ToString()
@@ -297,6 +392,15 @@ namespace PokemonTCGBattle
             {
                 UserCards = userCards;
             }
+            
+            public void PrintPokemonList()
+            {
+                Console.WriteLine("Your Pokemon List: ");
+                foreach (Card card in UserCards)
+                {
+                    Console.WriteLine($"{card.CardsPokemon.Name}: HP - {card.CardsPokemon.HP}, Status: {card.CardsPokemon.Status}");
+                }
+            }
         }
 
         public class Computer
@@ -305,6 +409,14 @@ namespace PokemonTCGBattle
             public Computer(Card[] computerCards)
             {
                 ComputerCards = computerCards;
+            }
+            public void PrintPokemonList()
+            {
+                Console.WriteLine("Computer Pokemon List: ");
+                foreach (Card card in ComputerCards)
+                {
+                    Console.WriteLine($"{card.CardsPokemon.Name}: HP - {card.CardsPokemon.HP}, Status: {card.CardsPokemon.Status}");
+                }
             }
         }
 
@@ -341,9 +453,16 @@ namespace PokemonTCGBattle
             }
             User user = new User(userCards);
             Computer computer = new Computer(computerCards);
-            Menu.PrintUserCards(userCards);
-            
+            GameController gameController = new GameController(userCards[0], computerCards[0]);
+            Console.WriteLine("Your cards have been dealt. Let the battle begin!!!\n");
+            Console.WriteLine("YOUR CURRENT CARD:\n");
+            user.UserCards[0].PrintCard();
+            Console.WriteLine("\n");
+            Console.WriteLine("COMPUTER CURRENT CARD:\n");
+            computer.ComputerCards[0].PrintCard();
+            Menu.printGameMenu(user, computer, gameController);
 
+            //Begin the battle by selecting the players first card and the computers first card and printing the 
 
             //Debugging Code
             /*foreach(Pokemon p in userPokemon)
