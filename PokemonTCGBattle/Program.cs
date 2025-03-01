@@ -26,7 +26,7 @@ namespace PokemonTCGBattle
             public static void PrintMenu()
             {
                 Console.WriteLine("Welcome to Pokemon TCG Console Game!!!\n" +
-                    "\n Press any key to begin to play!");
+                    "\nPress any key to begin to play!");
                 Console.Read();
                 Console.Clear();
                 Console.WriteLine("You will be dealt 5 Pokemon cards at random to battle the computer.\n\n" +
@@ -208,17 +208,19 @@ namespace PokemonTCGBattle
                 string miniDeliniator = "-----\n";
 
                 WriteSlowly(cardDelineator, 20);
-                Console.WriteLine($"{CardsPokemon.Name} - HP:{CardsPokemon.HP}\n");
+                Console.WriteLine($"{CardsPokemon.Name} - HP:{CardsPokemon.HP}");
                 WriteSlowly(miniDeliniator, 20);
                 foreach (Attack attack in CardsPokemon.Attacks){
                     WriteSlowly(attack.Name + "\n\n", 20);
                     Console.WriteLine(attack.Description + "\n");
-                    Console.WriteLine($"\nDMG:{attack.Damage}");
+                    Console.WriteLine($"DMG:{attack.Damage}");
                     WriteSlowly(miniDeliniator, 20);
                 }
+                string resistance = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Resistance}";
+                string weakness = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Weakness}";
                 Console.WriteLine($"Type: {CardsPokemon.PType}\n" +
-                 $"Weakness: {CardsPokemon.Weakness}\n" +
-                 $"Resistance: {CardsPokemon.Resistance}\n");
+                 $"Weakness: {weakness}\n" +
+                 $"Resistance: {resistance}");
                 WriteSlowly(cardDelineator, 20);
             }
         }
