@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.IO;
 using Xunit;
+using static PokemonTCGBattle.Program;
 
 namespace PokemonTCGBattle
 {
@@ -45,6 +46,30 @@ namespace PokemonTCGBattle
                 Console.Clear();
             }
 
+            public static void PrintMatchUp(GameController gameController)
+            {
+                Console.WriteLine("Your cards have been dealt. Let the battle begin!!!\n");
+                Console.WriteLine("YOUR CURRENT CARD:\n");
+                gameController.CurrentUserCard.PrintCard();
+                Console.WriteLine("\n");
+                Console.WriteLine("!!        !!    !!!!!!!\n" +
+                                  " !!      !!     !!\n" +
+                                  "  !!    !!      !!!!!!!\n" +
+                                  "   !!  !!            !!\n"+
+                                  "     !!         !!!!!!!\n\n");
+                Console.WriteLine("COMPUTER CURRENT CARD:\n");
+                gameController.CurrentComputerCard.PrintCard();
+            }
+
+            public static void PrintPokemonList(Card[] userCards)
+            {
+                Console.WriteLine("Your Pokemon List: ");
+                foreach (Card card in userCards)
+                {
+                    Console.WriteLine($"{Array.IndexOf(userCards, card) + 1}. {card.CardsPokemon.Name}: HP - {card.CardsPokemon.HP}, Status: {card.CardsPokemon.Status}");
+                }
+            }
+
             public static void printGameMenu(User user, Computer computer, GameController gameController)
             {
                 Console.WriteLine("\n");
@@ -68,15 +93,21 @@ namespace PokemonTCGBattle
                         printGameMenu(user, computer, gameController);
                         break;
                     case "2":
-                        user.PrintPokemonList();
+                        PrintPokemonList(user.UserCards);
                         printGameMenu(user, computer, gameController);
                         break;
                     case "3":
-                        computer.PrintPokemonList();
+                        PrintPokemonList(computer.ComputerCards);
                         printGameMenu(user, computer, gameController);
                         break;
                     case "4":
-                        gameController.SwitchPokemon(user);
+                        PrintPokemonList(user.UserCards);
+                        Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
+                        int index = Convert.ToInt32(Console.ReadLine());
+                        gameController.SwitchPokemon(index, user);
+                        Console.Clear();
+                        PrintMatchUp(gameController);
+                        printGameMenu(user, computer, gameController);
                         break;
                     case "5":
                         gameController.ChooseAttack(user);
@@ -123,9 +154,9 @@ namespace PokemonTCGBattle
                 CurrentUserCard = currentUserCard;
                 CurrentComputerCard = currentComputerCard;
             }
-            public void SwitchPokemon(User user)
+            public void SwitchPokemon(int index, User user)
             {
-                
+                CurrentUserCard = user.UserCards[index - 1];
             }
             public void ChooseAttack(User user)
             {
@@ -393,14 +424,6 @@ namespace PokemonTCGBattle
                 UserCards = userCards;
             }
             
-            public void PrintPokemonList()
-            {
-                Console.WriteLine("Your Pokemon List: ");
-                foreach (Card card in UserCards)
-                {
-                    Console.WriteLine($"{card.CardsPokemon.Name}: HP - {card.CardsPokemon.HP}, Status: {card.CardsPokemon.Status}");
-                }
-            }
         }
 
         public class Computer
@@ -409,14 +432,6 @@ namespace PokemonTCGBattle
             public Computer(Card[] computerCards)
             {
                 ComputerCards = computerCards;
-            }
-            public void PrintPokemonList()
-            {
-                Console.WriteLine("Computer Pokemon List: ");
-                foreach (Card card in ComputerCards)
-                {
-                    Console.WriteLine($"{card.CardsPokemon.Name}: HP - {card.CardsPokemon.HP}, Status: {card.CardsPokemon.Status}");
-                }
             }
         }
 
@@ -454,12 +469,7 @@ namespace PokemonTCGBattle
             User user = new User(userCards);
             Computer computer = new Computer(computerCards);
             GameController gameController = new GameController(userCards[0], computerCards[0]);
-            Console.WriteLine("Your cards have been dealt. Let the battle begin!!!\n");
-            Console.WriteLine("YOUR CURRENT CARD:\n");
-            user.UserCards[0].PrintCard();
-            Console.WriteLine("\n");
-            Console.WriteLine("COMPUTER CURRENT CARD:\n");
-            computer.ComputerCards[0].PrintCard();
+            Menu.PrintMatchUp(gameController);
             Menu.printGameMenu(user, computer, gameController);
 
             //Begin the battle by selecting the players first card and the computers first card and printing the 
