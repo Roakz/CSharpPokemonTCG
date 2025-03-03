@@ -70,6 +70,34 @@ namespace PokemonTCGBattle
                 }
             }
 
+            public static void PrintCoinToss(GameController gameController)
+            {
+                Console.WriteLine("Please enter your selection:\n" +
+                                  "1. Heads\n" +
+                                  "2. Tails\n");
+                
+                int userSelection = Convert.ToInt32(Console.ReadLine());
+                Console.Clear();
+                for (int i = 0; i < 2; i++)
+                {
+                    Console.Write("Flipping Coin");
+                    WriteSlowly("!!!", 800);
+                    Console.Clear();
+                }
+                Console.Clear();
+                Boolean isHeads = gameController.FlipCoin();
+                gameController.UserTurn = userSelection == 1 && isHeads == true ? true : false;
+
+                if (gameController.UserTurn == true)
+                {
+                    Console.WriteLine("You won the coin toss!! You will go first.\n");
+                }
+                else
+                {
+                    Console.WriteLine("You lost the coin toss. The computer will go first.\n");
+                }
+            }
+
             public static void printGameMenu(User user, Computer computer, GameController gameController)
             {
                 Console.WriteLine("\n");
@@ -149,14 +177,28 @@ namespace PokemonTCGBattle
 
             public Card CurrentUserCard { get; set; }
             public Card CurrentComputerCard { get; set; }
+            public Boolean UserTurn { get; set; } = false;
+
             public GameController(Card currentUserCard, Card currentComputerCard)
             {
                 CurrentUserCard = currentUserCard;
                 CurrentComputerCard = currentComputerCard;
             }
+
+            public void ComputerTakesTurn()
+            {
+                Console.WriteLine("The computer is taking its turn.");
+            }
             public void SwitchPokemon(int index, User user)
             {
                 CurrentUserCard = user.UserCards[index - 1];
+            }
+
+            public Boolean FlipCoin()
+            {
+                Random rand = new Random();
+                int HeadorTails =  rand.Next(1,3);
+                return HeadorTails == 1;
             }
             public void ChooseAttack(User user)
             {
@@ -469,8 +511,17 @@ namespace PokemonTCGBattle
             User user = new User(userCards);
             Computer computer = new Computer(computerCards);
             GameController gameController = new GameController(userCards[0], computerCards[0]);
+            Menu.PrintCoinToss(gameController);
             Menu.PrintMatchUp(gameController);
-            Menu.printGameMenu(user, computer, gameController);
+            if(gameController.UserTurn == true)
+            {
+                Menu.printGameMenu(user, computer, gameController);
+            }
+            else
+            {
+                gameController.ComputerTakesTurn();
+            }
+
 
             //Begin the battle by selecting the players first card and the computers first card and printing the 
 
