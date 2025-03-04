@@ -2,35 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.IO;
-using Xunit;
-using static PokemonTCGBattle.Program;
+
 
 namespace PokemonTCGBattle
 {
     class Program
     {
-        public static void WriteSlowly(string message, int timeDelay)
+        public class AnimationHelper
         {
-            foreach (char c in message)
+            public static void WriteSlowly(string message, int timeDelay)
             {
-                Console.Write(c);
-                Thread.Sleep(timeDelay);
+                foreach (char c in message)
+                {
+                    Console.Write(c);
+                    Thread.Sleep(timeDelay);
+                }
             }
         }
 
-        //Game menu should contain view pokemon list
-        //Pokemon list should show each pokemon and its hp or fainted status
-        //view computer pokemon list and their hp or fainted status
-        //switch pokemon (this counts as a turn)
-        //choose attack(this will be your turn and will be relevant to your current card)
-        //apply potion(each player gets 2)
-        //retreat ... you lose start menu appears after loser message
-        //exit game ... game exits
         class Menu
         {
             public static void PrintMenu()
@@ -70,25 +61,26 @@ namespace PokemonTCGBattle
                 }
             }
 
-            public static void PrintCoinToss(GameController gameController)
+            public static void PrintCoinTossMenu()
             {
                 Console.WriteLine("Please enter your selection:\n" +
                                   "1. Heads\n" +
                                   "2. Tails\n");
-                
-                int userSelection = Convert.ToInt32(Console.ReadLine());
-                Console.Clear();
+            }
+
+            public static void PrintCointTossAnimation()
+            {
                 for (int i = 0; i < 2; i++)
                 {
                     Console.Write("Flipping Coin");
-                    WriteSlowly("!!!", 800);
+                    AnimationHelper.WriteSlowly("!!!", 800);
                     Console.Clear();
                 }
                 Console.Clear();
-                Boolean isHeads = gameController.FlipCoin();
-                gameController.UserTurn = userSelection == 1 && isHeads == true ? true : false;
+            }
 
-                if (gameController.UserTurn == true)
+            public static void PrintCoinTossResult(Boolean userTurn) {
+                if (userTurn == true)
                 {
                     Console.WriteLine("You won the coin toss!! You will go first.\n");
                 }
@@ -111,49 +103,6 @@ namespace PokemonTCGBattle
                     "7. Retreat\n" +
                     "8. Exit Game\n" +
                     "Please enter the number of the option you would like to select: ");
-
-                string userChoice = Console.ReadLine();
-                Console.Clear();
-                switch (userChoice)
-                {
-                    case "1":
-                        PrintUserCards(user.UserCards);
-                        printGameMenu(user, computer, gameController);
-                        break;
-                    case "2":
-                        PrintPokemonList(user.UserCards);
-                        printGameMenu(user, computer, gameController);
-                        break;
-                    case "3":
-                        PrintPokemonList(computer.ComputerCards);
-                        printGameMenu(user, computer, gameController);
-                        break;
-                    case "4":
-                        PrintPokemonList(user.UserCards);
-                        Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
-                        int index = Convert.ToInt32(Console.ReadLine());
-                        gameController.SwitchPokemon(index, user);
-                        Console.Clear();
-                        PrintMatchUp(gameController);
-                        printGameMenu(user, computer, gameController);
-                        break;
-                    case "5":
-                        gameController.ChooseAttack(user);
-                        break;
-                    case "6":
-                        gameController.ApplyPotion(user);
-                        break;
-                    case "7":
-                        gameController.Retreat();
-                        break;
-                    case "8":
-                        gameController.ExitGame();
-                        break;
-                    default:
-                        Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
-                        printGameMenu(user, computer, gameController);
-                        break;
-                }
             }
 
             public static void PrintUserCards(Card[] userCards)
@@ -161,7 +110,7 @@ namespace PokemonTCGBattle
                 for (int i = 0; i < 2; i++)
                 {
                     Console.Write("Loading your cards ");
-                    WriteSlowly("...", 800);
+                    AnimationHelper.WriteSlowly("...", 800);
                     Console.Clear();
                 }
                 Console.WriteLine("Your cards are: ");
@@ -178,11 +127,106 @@ namespace PokemonTCGBattle
             public Card CurrentUserCard { get; set; }
             public Card CurrentComputerCard { get; set; }
             public Boolean UserTurn { get; set; } = false;
+            private User User;
+            private Computer Computer;
 
-            public GameController(Card currentUserCard, Card currentComputerCard)
+            public GameController(User user, Computer computer)
             {
-                CurrentUserCard = currentUserCard;
-                CurrentComputerCard = currentComputerCard;
+                User = user;
+                Computer = computer;
+            }
+
+            public void InitializeGame(Pokemon[] pokemonArray)
+            {
+                Pokemon[] userPokemon;
+                Pokemon[] computerPokemon;
+                Random rnd = new Random();
+                Dealer dealer = new Dealer();
+                userPokemon = dealer.Deal(pokemonArray, rnd);
+                computerPokemon = dealer.Deal(pokemonArray, rnd);
+                Card[] userCards = new Card[5];
+                Card[] computerCards = new Card[5];
+                for (int i = 0; i < 5; i++)
+                {
+                    userCards[i] = new Card(userPokemon[i]);
+                    computerCards[i] = new Card(computerPokemon[i]);
+                }
+
+                User.UserCards = userCards;
+                Computer.ComputerCards = computerCards;
+                CurrentUserCard = User.UserCards[0];
+                CurrentComputerCard = Computer.ComputerCards[0];
+            }
+
+            public void InitializeCoinToss()
+            {
+                Menu.PrintCoinTossMenu();
+                int userSelection = Convert.ToInt32(Console.ReadLine());
+                Console.Clear();
+                Menu.PrintCointTossAnimation();
+                Boolean isHeads = FlipCoin();
+                UserTurn = userSelection == 1 && isHeads == true ? true : false;
+                Menu.PrintCoinTossResult(UserTurn);
+            }
+
+            public void UserMenuSwitch()
+            {
+
+                string userChoice = Console.ReadLine();
+                Console.Clear();
+                switch (userChoice)
+                {
+                    case "1":
+                        Menu.PrintUserCards(User.UserCards);
+                        Menu.printGameMenu(User, Computer, this);
+                        break;
+                    case "2":
+                        Menu.PrintPokemonList(User.UserCards);
+                        Menu.printGameMenu(User, Computer, this);
+                        break;
+                    case "3":
+                        Menu.PrintPokemonList(Computer.ComputerCards);
+                        Menu.printGameMenu(User, Computer, this);
+                        break;
+                    case "4":
+                        Menu.PrintPokemonList(User.UserCards);
+                        Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
+                        int index = Convert.ToInt32(Console.ReadLine());
+                        SwitchPokemon(index, User);
+                        Console.Clear();
+                        Menu.PrintMatchUp(this);
+                        Menu.printGameMenu(User, Computer, this);
+                        break;
+                    case "5":
+                        ChooseAttack(User);
+                        break;
+                    case "6":
+                        ApplyPotion(User);
+                        break;
+                    case "7":
+                        Retreat();
+                        break;
+                    case "8":
+                        ExitGame();
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
+                        Menu.printGameMenu(User, Computer, this);
+                        break;
+                }
+            }
+
+            public void Play()
+            {
+                if(UserTurn == true)
+                {
+                    Menu.printGameMenu(User, Computer, this);
+                    UserMenuSwitch();
+                }
+                else
+                {
+                    ComputerTakesTurn();
+                }
             }
 
             public void ComputerTakesTurn()
@@ -375,21 +419,21 @@ namespace PokemonTCGBattle
                 string cardDelineator = "-------------------------------------------\n";
                 string miniDeliniator = "-----\n";
 
-                WriteSlowly(cardDelineator, 20);
+                AnimationHelper.WriteSlowly(cardDelineator, 20);
                 Console.WriteLine($"{CardsPokemon.Name} - HP:{CardsPokemon.HP}");
-                WriteSlowly(miniDeliniator, 20);
+                AnimationHelper.WriteSlowly(miniDeliniator, 20);
                 foreach (Attack attack in CardsPokemon.Attacks){
-                    WriteSlowly(attack.Name + "\n\n", 20);
+                    AnimationHelper.WriteSlowly(attack.Name + "\n\n", 20);
                     Console.WriteLine(attack.Description + "\n");
                     Console.WriteLine($"DMG:{attack.Damage}");
-                    WriteSlowly(miniDeliniator, 20);
+                    AnimationHelper.WriteSlowly(miniDeliniator, 20);
                 }
                 string resistance = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Resistance}";
                 string weakness = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Weakness}";
                 Console.WriteLine($"Type: {CardsPokemon.PType}\n" +
                  $"Weakness: {weakness}\n" +
                  $"Resistance: {resistance}");
-                WriteSlowly(cardDelineator, 20);
+                AnimationHelper.WriteSlowly(cardDelineator, 20);
             }
         }
 
@@ -420,9 +464,7 @@ namespace PokemonTCGBattle
 
         public class JsonConverter
         {
-            
             public string JsonString { get; private set; }
-
             public JsonConverter(string path, string fileName)
             {
                 JsonString = File.ReadAllText(path + fileName);
@@ -460,81 +502,39 @@ namespace PokemonTCGBattle
 
         public class User
         {
-            public Card[] UserCards { get; private set; }
-            public User(Card[] userCards)
+            public Card[] UserCards { get; set; }
+            public User()
             {
-                UserCards = userCards;
             }
             
         }
 
         public class Computer
         {
-            public Card[] ComputerCards { get; private set; }
-            public Computer(Card[] computerCards)
+            public Card[] ComputerCards { get; set; }
+            public Computer()
             {
-                ComputerCards = computerCards;
             }
         }
 
         static void Main(string[] args)
         {
-            Pokemon[] userPokemon;
-            Pokemon[] computerPokemon;
-            
             const string fileName = @"\PokemonCardData.json";
             const string path = @"C:\Users\rory_\source\repos\PokemonTCGBattle\";
-            JsonConverter jsonConverter = new JsonConverter(path, fileName);
 
+            Menu.PrintMenu();
+
+            JsonConverter jsonConverter = new JsonConverter(path, fileName);
             Pokemon[] pokemonArray = jsonConverter.JsonToPokemonArray();
 
-            //Debugging Code
-            /*foreach(Pokemon p in pokemonArray)
-            {
-               Console.WriteLine(p.ToString());
-               Console.WriteLine();
-            }*/
-            //Console.Read();
-                        
-            Menu.PrintMenu();
-            Random rnd = new Random();
-            Dealer dealer = new Dealer();
-            userPokemon = dealer.Deal(pokemonArray, rnd);
-            computerPokemon = dealer.Deal(pokemonArray, rnd);
-            Card[] userCards = new Card[5];
-            Card[] computerCards = new Card[5];
-            for (int i = 0; i < 5; i++)
-            {
-                userCards[i] = new Card(userPokemon[i]);
-                computerCards[i] = new Card(computerPokemon[i]);
-            }
-            User user = new User(userCards);
-            Computer computer = new Computer(computerCards);
-            GameController gameController = new GameController(userCards[0], computerCards[0]);
-            Menu.PrintCoinToss(gameController);
+            User user = new User();
+            Computer computer = new Computer();
+            GameController gameController = new GameController(user, computer);
+
+            gameController.InitializeGame(pokemonArray);
+            gameController.InitializeCoinToss();
             Menu.PrintMatchUp(gameController);
-            if(gameController.UserTurn == true)
-            {
-                Menu.printGameMenu(user, computer, gameController);
-            }
-            else
-            {
-                gameController.ComputerTakesTurn();
-            }
-
-
-            //Begin the battle by selecting the players first card and the computers first card and printing the 
-
-            //Debugging Code
-            /*foreach(Pokemon p in userPokemon)
-            {
-                Console.WriteLine(p.Name);
-            }
-            Console.WriteLine("--------------------------------------------");
-            foreach(Pokemon p in computerPokemon)
-            {
-                Console.WriteLine(p.Name);
-            }*/
+            gameController.Play();
             Console.Read();
         }
     }
