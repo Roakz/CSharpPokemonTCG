@@ -22,7 +22,7 @@ namespace PokemonTCGBattle
             }
         }
 
-        class Menu
+        class GameInterface
         {
             public static void PrintMenu()
             {
@@ -37,11 +37,11 @@ namespace PokemonTCGBattle
                 Console.Clear();
             }
 
-            public static void PrintMatchUp(GameController gameController)
+            public static void PrintMatchUp(Card userCard, Card computerCard)
             {
                 Console.WriteLine("Your cards have been dealt. Let the battle begin!!!\n");
                 Console.WriteLine("YOUR CURRENT CARD:\n");
-                gameController.CurrentUserCard.PrintCard();
+                userCard.PrintCard();
                 Console.WriteLine("\n");
                 Console.WriteLine("!!        !!    !!!!!!!\n" +
                                   " !!      !!     !!\n" +
@@ -49,7 +49,7 @@ namespace PokemonTCGBattle
                                   "   !!  !!            !!\n"+
                                   "     !!         !!!!!!!\n\n");
                 Console.WriteLine("COMPUTER CURRENT CARD:\n");
-                gameController.CurrentComputerCard.PrintCard();
+                computerCard.PrintCard();
             }
 
             public static void PrintPokemonList(Card[] userCards)
@@ -160,13 +160,13 @@ namespace PokemonTCGBattle
 
             public void InitializeCoinToss()
             {
-                Menu.PrintCoinTossMenu();
+                GameInterface.PrintCoinTossMenu();
                 int userSelection = Convert.ToInt32(Console.ReadLine());
                 Console.Clear();
-                Menu.PrintCointTossAnimation();
+                GameInterface.PrintCointTossAnimation();
                 Boolean isHeads = FlipCoin();
                 UserTurn = userSelection == 1 && isHeads == true ? true : false;
-                Menu.PrintCoinTossResult(UserTurn);
+                GameInterface.PrintCoinTossResult(UserTurn);
             }
 
             public void UserMenuSwitch()
@@ -177,25 +177,25 @@ namespace PokemonTCGBattle
                 switch (userChoice)
                 {
                     case "1":
-                        Menu.PrintUserCards(User.UserCards);
-                        Menu.printGameMenu(User, Computer, this);
+                        GameInterface.PrintUserCards(User.UserCards);
+                        GameInterface.printGameMenu(User, Computer, this);
                         break;
                     case "2":
-                        Menu.PrintPokemonList(User.UserCards);
-                        Menu.printGameMenu(User, Computer, this);
+                        GameInterface.PrintPokemonList(User.UserCards);
+                        GameInterface.printGameMenu(User, Computer, this);
                         break;
                     case "3":
-                        Menu.PrintPokemonList(Computer.ComputerCards);
-                        Menu.printGameMenu(User, Computer, this);
+                        GameInterface.PrintPokemonList(Computer.ComputerCards);
+                        GameInterface.printGameMenu(User, Computer, this);
                         break;
                     case "4":
-                        Menu.PrintPokemonList(User.UserCards);
+                        GameInterface.PrintPokemonList(User.UserCards);
                         Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
                         int index = Convert.ToInt32(Console.ReadLine());
                         SwitchPokemon(index, User);
                         Console.Clear();
-                        Menu.PrintMatchUp(this);
-                        Menu.printGameMenu(User, Computer, this);
+                        GameInterface.PrintMatchUp(CurrentUserCard, CurrentComputerCard);
+                        GameInterface.printGameMenu(User, Computer, this);
                         break;
                     case "5":
                         ChooseAttack(User);
@@ -211,7 +211,7 @@ namespace PokemonTCGBattle
                         break;
                     default:
                         Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
-                        Menu.printGameMenu(User, Computer, this);
+                        GameInterface.printGameMenu(User, Computer, this);
                         break;
                 }
             }
@@ -220,7 +220,7 @@ namespace PokemonTCGBattle
             {
                 if(UserTurn == true)
                 {
-                    Menu.printGameMenu(User, Computer, this);
+                    GameInterface.printGameMenu(User, Computer, this);
                     UserMenuSwitch();
                 }
                 else
@@ -436,7 +436,7 @@ namespace PokemonTCGBattle
                 AnimationHelper.WriteSlowly(cardDelineator, 20);
             }
         }
-
+        
         public class Dealer
         {
             public Pokemon[] Deal(Pokemon[] pokemonArray, Random rnd)
@@ -462,17 +462,33 @@ namespace PokemonTCGBattle
             }
         }
 
-        public class JsonConverter
+        public class JsonParser
         {
-            public string JsonString { get; private set; }
-            public JsonConverter(string path, string fileName)
+            private string path;
+            private string fileName;
+            public JsonParser(string path, string fileName)
             {
-                JsonString = File.ReadAllText(path + fileName);
+                this.path = path;
+                this.fileName = fileName;
             }
 
-            public Pokemon[] JsonToPokemonArray()
+            public string FileToJsonString() {
+
+                return File.ReadAllText(path + fileName);
+            }
+        }
+
+        public class JsonToPokemonConverter
+        {
+            private string jsonString;
+            public JsonToPokemonConverter(string jsonString)
             {
-                JsonNode jsonPokemonArrayString = JsonNode.Parse(JsonString);
+               this.jsonString = jsonString;
+            }
+
+            public Pokemon[] JsonStringToPokemonArray()
+            {
+                JsonNode jsonPokemonArrayString = JsonNode.Parse(jsonString);
                 Pokemon[] pokemonArray = new Pokemon[jsonPokemonArrayString.AsArray().Count()];
                 int count = 0;
                 foreach(JsonNode jNode in jsonPokemonArrayString.AsArray())
@@ -506,7 +522,6 @@ namespace PokemonTCGBattle
             public User()
             {
             }
-            
         }
 
         public class Computer
@@ -522,10 +537,12 @@ namespace PokemonTCGBattle
             const string fileName = @"\PokemonCardData.json";
             const string path = @"C:\Users\rory_\source\repos\PokemonTCGBattle\";
 
-            Menu.PrintMenu();
+            GameInterface.PrintMenu();
 
-            JsonConverter jsonConverter = new JsonConverter(path, fileName);
-            Pokemon[] pokemonArray = jsonConverter.JsonToPokemonArray();
+            JsonParser jsonParser = new JsonParser(path, fileName);
+            string jsonString = jsonParser.FileToJsonString();
+            JsonToPokemonConverter jsonConverter = new JsonToPokemonConverter(jsonString);
+            Pokemon[] pokemonArray = jsonConverter.JsonStringToPokemonArray();
 
             User user = new User();
             Computer computer = new Computer();
@@ -533,7 +550,7 @@ namespace PokemonTCGBattle
 
             gameController.InitializeGame(pokemonArray);
             gameController.InitializeCoinToss();
-            Menu.PrintMatchUp(gameController);
+            GameInterface.PrintMatchUp(gameController.CurrentUserCard, gameController.CurrentComputerCard);
             gameController.Play();
             Console.Read();
         }
