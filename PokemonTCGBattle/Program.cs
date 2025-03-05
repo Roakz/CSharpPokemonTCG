@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Text.Json.Nodes;
 using System.IO;
+using static PokemonTCGBattle.Program;
 
 
 namespace PokemonTCGBattle
 {
     class Program
     {
-        public class AnimationHelper
+        public class AnimationService
         {
             public static void WriteSlowly(string message, int timeDelay)
             {
@@ -20,9 +21,20 @@ namespace PokemonTCGBattle
                     Thread.Sleep(timeDelay);
                 }
             }
-        }
 
-        class GameInterface
+            public static void CoinTossAnimation()
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Console.Write("Flipping Coin");
+                    WriteSlowly("!!!", 800);
+                    Console.Clear();
+                }
+                Console.Clear();
+            }
+        }
+        //Prints user interface
+        class InterfacePrinter
         {
             public static void PrintMenu()
             {
@@ -68,17 +80,6 @@ namespace PokemonTCGBattle
                                   "2. Tails\n");
             }
 
-            public static void PrintCointTossAnimation()
-            {
-                for (int i = 0; i < 2; i++)
-                {
-                    Console.Write("Flipping Coin");
-                    AnimationHelper.WriteSlowly("!!!", 800);
-                    Console.Clear();
-                }
-                Console.Clear();
-            }
-
             public static void PrintCoinTossResult(Boolean userTurn) {
                 if (userTurn == true)
                 {
@@ -110,7 +111,7 @@ namespace PokemonTCGBattle
                 for (int i = 0; i < 2; i++)
                 {
                     Console.Write("Loading your cards ");
-                    AnimationHelper.WriteSlowly("...", 800);
+                    AnimationService.WriteSlowly("...", 800);
                     Console.Clear();
                 }
                 Console.WriteLine("Your cards are: ");
@@ -121,9 +122,25 @@ namespace PokemonTCGBattle
             }
         }
 
+        public enum CoinSide
+        {
+            Heads,
+            Tails
+        }
+
+        public class CoinTossManager
+        {
+            private readonly Random _random = new Random();
+
+            public CoinSide FlipCoin()
+            {
+                return _random.Next(2) == 0 ? CoinSide.Heads : CoinSide.Tails;
+            }
+        }
+
+        //Controls game flow
         public class GameController
         {
-
             public Card CurrentUserCard { get; set; }
             public Card CurrentComputerCard { get; set; }
             public Boolean UserTurn { get; set; } = false;
@@ -136,37 +153,16 @@ namespace PokemonTCGBattle
                 Computer = computer;
             }
 
-            public void InitializeGame(Pokemon[] pokemonArray)
+            public void PerformCoinToss()
             {
-                Pokemon[] userPokemon;
-                Pokemon[] computerPokemon;
-                Random rnd = new Random();
-                Dealer dealer = new Dealer();
-                userPokemon = dealer.Deal(pokemonArray, rnd);
-                computerPokemon = dealer.Deal(pokemonArray, rnd);
-                Card[] userCards = new Card[5];
-                Card[] computerCards = new Card[5];
-                for (int i = 0; i < 5; i++)
-                {
-                    userCards[i] = new Card(userPokemon[i]);
-                    computerCards[i] = new Card(computerPokemon[i]);
-                }
-
-                User.UserCards = userCards;
-                Computer.ComputerCards = computerCards;
-                CurrentUserCard = User.UserCards[0];
-                CurrentComputerCard = Computer.ComputerCards[0];
-            }
-
-            public void InitializeCoinToss()
-            {
-                GameInterface.PrintCoinTossMenu();
+                CoinTossManager coinTossManager = new CoinTossManager();
+                InterfacePrinter.PrintCoinTossMenu();
                 int userSelection = Convert.ToInt32(Console.ReadLine());
                 Console.Clear();
-                GameInterface.PrintCointTossAnimation();
-                Boolean isHeads = FlipCoin();
-                UserTurn = userSelection == 1 && isHeads == true ? true : false;
-                GameInterface.PrintCoinTossResult(UserTurn);
+                AnimationService.CoinTossAnimation();
+                CoinSide isHeads = coinTossManager.FlipCoin();
+                UserTurn = userSelection == 1 && isHeads == CoinSide.Heads;
+                InterfacePrinter.PrintCoinTossResult(UserTurn);
             }
 
             public void UserMenuSwitch()
@@ -177,25 +173,25 @@ namespace PokemonTCGBattle
                 switch (userChoice)
                 {
                     case "1":
-                        GameInterface.PrintUserCards(User.UserCards);
-                        GameInterface.printGameMenu(User, Computer, this);
+                        InterfacePrinter.PrintUserCards(User.UserCards);
+                        InterfacePrinter.printGameMenu(User, Computer, this);
                         break;
                     case "2":
-                        GameInterface.PrintPokemonList(User.UserCards);
-                        GameInterface.printGameMenu(User, Computer, this);
+                        InterfacePrinter.PrintPokemonList(User.UserCards);
+                        InterfacePrinter.printGameMenu(User, Computer, this);
                         break;
                     case "3":
-                        GameInterface.PrintPokemonList(Computer.ComputerCards);
-                        GameInterface.printGameMenu(User, Computer, this);
+                        InterfacePrinter.PrintPokemonList(Computer.ComputerCards);
+                        InterfacePrinter.printGameMenu(User, Computer, this);
                         break;
                     case "4":
-                        GameInterface.PrintPokemonList(User.UserCards);
+                        InterfacePrinter.PrintPokemonList(User.UserCards);
                         Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
                         int index = Convert.ToInt32(Console.ReadLine());
                         SwitchPokemon(index, User);
                         Console.Clear();
-                        GameInterface.PrintMatchUp(CurrentUserCard, CurrentComputerCard);
-                        GameInterface.printGameMenu(User, Computer, this);
+                        InterfacePrinter.PrintMatchUp(CurrentUserCard, CurrentComputerCard);
+                        InterfacePrinter.printGameMenu(User, Computer, this);
                         break;
                     case "5":
                         ChooseAttack(User);
@@ -211,16 +207,18 @@ namespace PokemonTCGBattle
                         break;
                     default:
                         Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
-                        GameInterface.printGameMenu(User, Computer, this);
+                        InterfacePrinter.printGameMenu(User, Computer, this);
                         break;
                 }
             }
 
             public void Play()
             {
-                if(UserTurn == true)
+                PerformCoinToss();
+                InterfacePrinter.PrintMatchUp(CurrentUserCard, CurrentComputerCard);
+                if (UserTurn == true)
                 {
-                    GameInterface.printGameMenu(User, Computer, this);
+                    InterfacePrinter.printGameMenu(User, Computer, this);
                     UserMenuSwitch();
                 }
                 else
@@ -238,12 +236,6 @@ namespace PokemonTCGBattle
                 CurrentUserCard = user.UserCards[index - 1];
             }
 
-            public Boolean FlipCoin()
-            {
-                Random rand = new Random();
-                int HeadorTails =  rand.Next(1,3);
-                return HeadorTails == 1;
-            }
             public void ChooseAttack(User user)
             {
                 
@@ -261,6 +253,7 @@ namespace PokemonTCGBattle
                 Environment.Exit(0);
             }
         }
+
 
         public enum PokemonType
         {
@@ -419,21 +412,21 @@ namespace PokemonTCGBattle
                 string cardDelineator = "-------------------------------------------\n";
                 string miniDeliniator = "-----\n";
 
-                AnimationHelper.WriteSlowly(cardDelineator, 20);
+                AnimationService.WriteSlowly(cardDelineator, 20);
                 Console.WriteLine($"{CardsPokemon.Name} - HP:{CardsPokemon.HP}");
-                AnimationHelper.WriteSlowly(miniDeliniator, 20);
+                AnimationService.WriteSlowly(miniDeliniator, 20);
                 foreach (Attack attack in CardsPokemon.Attacks){
-                    AnimationHelper.WriteSlowly(attack.Name + "\n\n", 20);
+                    AnimationService.WriteSlowly(attack.Name + "\n\n", 20);
                     Console.WriteLine(attack.Description + "\n");
                     Console.WriteLine($"DMG:{attack.Damage}");
-                    AnimationHelper.WriteSlowly(miniDeliniator, 20);
+                    AnimationService.WriteSlowly(miniDeliniator, 20);
                 }
                 string resistance = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Resistance}";
                 string weakness = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Weakness}";
                 Console.WriteLine($"Type: {CardsPokemon.PType}\n" +
                  $"Weakness: {weakness}\n" +
                  $"Resistance: {resistance}");
-                AnimationHelper.WriteSlowly(cardDelineator, 20);
+                AnimationService.WriteSlowly(cardDelineator, 20);
             }
         }
         
@@ -532,12 +525,33 @@ namespace PokemonTCGBattle
             }
         }
 
+        public class GameInitializer
+        {
+            public static void InitializeGame(Pokemon[] pokemonArray, User user, Computer computer, GameController gameController, Dealer dealer, Random rnd)
+            {
+                Pokemon[] userPokemon = dealer.Deal(pokemonArray, rnd);
+                Pokemon[] computerPokemon = dealer.Deal(pokemonArray, rnd);
+                CreateCards(userPokemon, computerPokemon, user, computer, gameController);
+            }
+
+            private static void CreateCards(Pokemon[] userPokemon, Pokemon[] computerPokemon, User user, Computer computer, GameController gameController)
+            {
+                Card[] userCards = userPokemon.Select(p => new Card(p)).ToArray();
+                Card[] computerCards = computerPokemon.Select(p => new Card(p)).ToArray();
+
+                user.UserCards = userCards;
+                computer.ComputerCards = computerCards;
+                gameController.CurrentUserCard = user.UserCards[0];
+                gameController.CurrentComputerCard = computer.ComputerCards[0];
+            }
+        }
+
         static void Main(string[] args)
         {
             const string fileName = @"\PokemonCardData.json";
             const string path = @"C:\Users\rory_\source\repos\PokemonTCGBattle\";
 
-            GameInterface.PrintMenu();
+            InterfacePrinter.PrintMenu();
 
             JsonParser jsonParser = new JsonParser(path, fileName);
             string jsonString = jsonParser.FileToJsonString();
@@ -547,12 +561,17 @@ namespace PokemonTCGBattle
             User user = new User();
             Computer computer = new Computer();
             GameController gameController = new GameController(user, computer);
-
-            gameController.InitializeGame(pokemonArray);
-            gameController.InitializeCoinToss();
-            GameInterface.PrintMatchUp(gameController.CurrentUserCard, gameController.CurrentComputerCard);
+            Random rnd = new Random();
+            Dealer dealer = new Dealer();
+            GameInitializer.InitializeGame(pokemonArray, user, computer, gameController, dealer, rnd);
             gameController.Play();
             Console.Read();
         }
     }
 }
+
+//GameInterface
+//-Prints the interface for the game.
+//GameController
+//-Controls the flow of the game accpeting information from the user and sending it to the User and Computer classes
+//-User and computer classes perform their own actions. They should inherit interfaces to enforce the methods they must have.
