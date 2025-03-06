@@ -32,7 +32,8 @@ namespace PokemonTCGBattle
             }
         }
         //Prints user interface
-        class InterfacePrinter
+
+        static class InterfacePrinter
         {
             public static void PrintWelcome()
             {
@@ -136,39 +137,45 @@ namespace PokemonTCGBattle
             }
         }
 
-        
-        //Controls the battle. Performs logic calculations relevant to the battle and assigns state to the relevant entities based on battle actions.
+
+        //
+        /*BattleController:
+          - Handles the specific rules and logic of the battle(attack selection, damage calculation, applying effects).
+          - Keeps the battle rules encapsulated so they can be modified without affecting the game flow logic.*/
         public class BattleController {
 
             public Boolean UserTurn { get; set; }
-            private User user;
+            private readonly User _user;
 
             public BattleController(User user)
             {
-                this.user = user;
+                _user = user;
                 UserTurn = false;
             }
 
             public void SwitchPokemonCard(int index, User user)
             {
-                user.CurrentUserCard = user.UserCards[index];
+                user.CurrentCard = user.PlayerCards[index];
             }
         }
 
 
-        //Controls game flow only it needs references to the user, computer and battle controller classes in order to access their state.
+        /*GameFlowController:
+          - Manages overall game state and user interactions(menus, turn order, coin toss).
+          - Orchestrates the progression of the game(starting the game, switching between battle and other phases, handling exits).
+          - Acts as a mediator between the UI and the core battle logic.*/
         public class GameFlowController
         {
             
-            private User user;
-            private Computer computer;
-            private BattleController battleController;
+            private readonly User _user;
+            private readonly Computer _computer;
+            private readonly BattleController _battleController;
 
             public GameFlowController(User user, Computer computer, BattleController battleController)
             {
-                this.user = user;
-                this.computer = computer;
-                this.battleController = battleController;
+                _user = user;
+                _computer = computer;
+                _battleController = battleController;
             }
 
             public void PerformCoinToss()
@@ -179,8 +186,8 @@ namespace PokemonTCGBattle
                 Console.Clear();
                 AnimationService.CoinTossAnimation();
                 CoinSide isHeads = coinTossManager.FlipCoin();
-                battleController.UserTurn = userSelection == 1 && isHeads == CoinSide.Heads;
-                InterfacePrinter.PrintCoinTossResult(battleController.UserTurn);
+                _battleController.UserTurn = userSelection == 1 && isHeads == CoinSide.Heads;
+                InterfacePrinter.PrintCoinTossResult(_battleController.UserTurn);
             }
 
             public void UserMenuSwitch(BattleController battleCotroller)
@@ -191,25 +198,25 @@ namespace PokemonTCGBattle
                 switch (userChoice)
                 {
                     case "1":
-                        InterfacePrinter.PrintUserCards(user.UserCards);
-                        InterfacePrinter.printGameMenu(user, computer, this);
+                        InterfacePrinter.PrintUserCards(_user.PlayerCards);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
                         break;
                     case "2":
-                        InterfacePrinter.PrintPokemonList(user.UserCards);
-                        InterfacePrinter.printGameMenu(user, computer, this);
+                        InterfacePrinter.PrintPokemonList(_user.PlayerCards);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
                         break;
                     case "3":
-                        InterfacePrinter.PrintPokemonList(computer.ComputerCards);
-                        InterfacePrinter.printGameMenu(user, computer, this);
+                        InterfacePrinter.PrintPokemonList(_computer.PlayerCards);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
                         break;
                     case "4":
-                        InterfacePrinter.PrintPokemonList(user.UserCards);
+                        InterfacePrinter.PrintPokemonList(_user.PlayerCards);
                         Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
                         int index = Convert.ToInt32(Console.ReadLine());
-                        battleCotroller.SwitchPokemonCard(index, user);
+                        battleCotroller.SwitchPokemonCard(index, _user);
                         Console.Clear();
-                        InterfacePrinter.PrintMatchUp(user.CurrentUserCard, computer.CurrentComputerCard);
-                        InterfacePrinter.printGameMenu(user, computer, this);
+                        InterfacePrinter.PrintMatchUp(_user.CurrentCard, _computer.CurrentCard);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
                         break;
                     case "5":
                         break;
@@ -222,7 +229,7 @@ namespace PokemonTCGBattle
                         break;
                     default:
                         Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
-                        InterfacePrinter.printGameMenu(user, computer, this);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
                         break;
                 }
             }
@@ -231,11 +238,11 @@ namespace PokemonTCGBattle
             {
                 InterfacePrinter.PrintWelcome();
                 PerformCoinToss();
-                InterfacePrinter.PrintMatchUp(user.CurrentUserCard, computer.CurrentComputerCard);
-                if (battleController.UserTurn == true)
+                InterfacePrinter.PrintMatchUp(_user.CurrentCard, _computer.CurrentCard);
+                if (_battleController.UserTurn == true)
                 {
-                    InterfacePrinter.printGameMenu(user, computer, this);
-                    UserMenuSwitch(battleController);
+                    InterfacePrinter.printGameMenu(_user, _computer, this);
+                    UserMenuSwitch(_battleController);
                 }
                 else
                 {
@@ -513,19 +520,25 @@ namespace PokemonTCGBattle
             }
         }
 
-        public class User
+        interface IPLayer
         {
-            public Card[] UserCards { get; set; }
-            public Card CurrentUserCard { get; set; }
+            Card[] PlayerCards { get; set; }
+            Card CurrentCard { get; set; }
+        }
+
+        public class User:IPLayer
+        {
+            public Card[] PlayerCards { get; set; }
+            public Card CurrentCard { get; set; }
             public User()
             {
             }
         }
 
-        public class Computer
+        public class Computer: IPLayer
         {
-            public Card[] ComputerCards { get; set; }
-            public Card CurrentComputerCard { get; set; }
+            public Card[] PlayerCards { get; set; }
+            public Card CurrentCard { get; set; }
             public Computer()
             {
             }
@@ -545,10 +558,10 @@ namespace PokemonTCGBattle
                 Card[] userCards = userPokemon.Select(p => new Card(p)).ToArray();
                 Card[] computerCards = computerPokemon.Select(p => new Card(p)).ToArray();
 
-                user.UserCards = userCards;
-                computer.ComputerCards = computerCards;
-                user.CurrentUserCard = user.UserCards[0];
-                computer.CurrentComputerCard = computer.ComputerCards[0];
+                user.PlayerCards = userCards;
+                computer.PlayerCards = computerCards;
+                user.CurrentCard = user.PlayerCards[0];
+                computer.CurrentCard = computer.PlayerCards[0];
             }
         }
 
