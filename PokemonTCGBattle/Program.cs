@@ -2,28 +2,40 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.IO;
-using Xunit;
 
 namespace PokemonTCGBattle
 {
     class Program
     {
-        public static void WriteSlowly(string message, int timeDelay)
+        public class AnimationService
         {
-            foreach (char c in message)
+            public static void WriteSlowly(string message, int timeDelay)
             {
-                Console.Write(c);
-                Thread.Sleep(timeDelay);
+                foreach (char c in message)
+                {
+                    Console.Write(c);
+                    Thread.Sleep(timeDelay);
+                }
+            }
+
+            public static void CoinTossAnimation()
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Console.Write("Flipping Coin");
+                    WriteSlowly("!!!", 800);
+                    Console.Clear();
+                }
+                Console.Clear();
             }
         }
-        class Menu
+        //Prints user interface
+
+        static class InterfacePrinter
         {
-            public static void PrintMenu()
+            public static void PrintWelcome()
             {
                 Console.WriteLine("Welcome to Pokemon TCG Console Game!!!\n" +
                     "\nPress any key to begin to play!");
@@ -36,12 +48,69 @@ namespace PokemonTCGBattle
                 Console.Clear();
             }
 
+            public static void PrintMatchUp(Card userCard, Card computerCard)
+            {
+                Console.WriteLine("Your cards have been dealt. Let the battle begin!!!\n");
+                Console.WriteLine("YOUR CURRENT CARD:\n");
+                userCard.PrintCard();
+                Console.WriteLine("\n");
+                Console.WriteLine("!!        !!    !!!!!!!\n" +
+                                  " !!      !!     !!\n" +
+                                  "  !!    !!      !!!!!!!\n" +
+                                  "   !!  !!            !!\n"+
+                                  "     !!         !!!!!!!\n\n");
+                Console.WriteLine("COMPUTER CURRENT CARD:\n");
+                computerCard.PrintCard();
+            }
+
+            public static void PrintPokemonList(Card[] userCards)
+            {
+                Console.WriteLine("Your Pokemon List: ");
+                foreach (Card card in userCards)
+                {
+                    Console.WriteLine($"{Array.IndexOf(userCards, card) + 1}. {card.CardsPokemon.Name}: HP - {card.CardsPokemon.HP}, Status: {card.CardsPokemon.Status}");
+                }
+            }
+
+            public static void PrintCoinTossMenu()
+            {
+                Console.WriteLine("Please enter your selection:\n" +
+                                  "1. Heads\n" +
+                                  "2. Tails\n");
+            }
+
+            public static void PrintCoinTossResult(Boolean userTurn) {
+                if (userTurn == true)
+                {
+                    Console.WriteLine("You won the coin toss!! You will go first.\n");
+                }
+                else
+                {
+                    Console.WriteLine("You lost the coin toss. The computer will go first.\n");
+                }
+            }
+
+            public static void printGameMenu(User user, Computer computer, GameFlowController gameController)
+            {
+                Console.WriteLine("\n");
+                Console.WriteLine("Game Menu:\n" +
+                    "1. Print Your Cards\n" +
+                    "2. View Pokemon List\n" +
+                    "3. View Computer Pokemon List\n" +
+                    "4. Switch Pokemon\n" +
+                    "5. Choose Attack\n" +
+                    "6. Apply Potion\n" +
+                    "7. Retreat\n" +
+                    "8. Exit Game\n" +
+                    "Please enter the number of the option you would like to select: ");
+            }
+
             public static void PrintUserCards(Card[] userCards)
             {
                 for (int i = 0; i < 2; i++)
                 {
                     Console.Write("Loading your cards ");
-                    WriteSlowly("...", 800);
+                    AnimationService.WriteSlowly("...", 800);
                     Console.Clear();
                 }
                 Console.WriteLine("Your cards are: ");
@@ -51,6 +120,148 @@ namespace PokemonTCGBattle
                 }
             }
         }
+
+        public enum CoinSide
+        {
+            Heads,
+            Tails
+        }
+
+        public class CoinTossManager
+        {
+            private readonly Random _random = new Random();
+
+            public CoinSide FlipCoin()
+            {
+                return _random.Next(2) == 0 ? CoinSide.Heads : CoinSide.Tails;
+            }
+        }
+
+
+        //
+        /*BattleController:
+          - Handles the specific rules and logic of the battle(attack selection, damage calculation, applying effects).
+          - Keeps the battle rules encapsulated so they can be modified without affecting the game flow logic.*/
+        public class BattleController {
+
+            public Boolean UserTurn { get; set; }
+            private readonly User _user;
+
+            public BattleController(User user)
+            {
+                _user = user;
+                UserTurn = false;
+            }
+
+            public void SwitchPokemonCard(int index, User user)
+            {
+                user.CurrentCard = user.PlayerCards[index];
+            }
+        }
+
+
+        /*GameFlowController:
+          - Manages overall game state and user interactions(menus, turn order, coin toss).
+          - Orchestrates the progression of the game(starting the game, switching between battle and other phases, handling exits).
+          - Acts as a mediator between the UI and the core battle logic.*/
+        public class GameFlowController
+        {
+            
+            private readonly User _user;
+            private readonly Computer _computer;
+            private readonly BattleController _battleController;
+
+            public GameFlowController(User user, Computer computer, BattleController battleController)
+            {
+                _user = user;
+                _computer = computer;
+                _battleController = battleController;
+            }
+
+            public void PerformCoinToss()
+            {
+                CoinTossManager coinTossManager = new CoinTossManager();
+                InterfacePrinter.PrintCoinTossMenu();
+                int userSelection = Convert.ToInt32(Console.ReadLine());
+                Console.Clear();
+                AnimationService.CoinTossAnimation();
+                CoinSide isHeads = coinTossManager.FlipCoin();
+                _battleController.UserTurn = userSelection == 1 && isHeads == CoinSide.Heads;
+                InterfacePrinter.PrintCoinTossResult(_battleController.UserTurn);
+            }
+
+            public void UserMenuSwitch(BattleController battleCotroller)
+            {
+
+                string userChoice = Console.ReadLine();
+                Console.Clear();
+                switch (userChoice)
+                {
+                    case "1":
+                        InterfacePrinter.PrintUserCards(_user.PlayerCards);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
+                        break;
+                    case "2":
+                        InterfacePrinter.PrintPokemonList(_user.PlayerCards);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
+                        break;
+                    case "3":
+                        InterfacePrinter.PrintPokemonList(_computer.PlayerCards);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
+                        break;
+                    case "4":
+                        InterfacePrinter.PrintPokemonList(_user.PlayerCards);
+                        Console.WriteLine("\nPlease enter the number corresponding to the pokemon you want to send out:");
+                        int index = Convert.ToInt32(Console.ReadLine());
+                        battleCotroller.SwitchPokemonCard(index, _user);
+                        Console.Clear();
+                        InterfacePrinter.PrintMatchUp(_user.CurrentCard, _computer.CurrentCard);
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
+                        break;
+                    case "5":
+                        break;
+                    case "6":
+                        break;
+                    case "7":
+                        break;
+                    case "8":
+                        ExitGame();
+                        break;
+                    default:
+                        Console.WriteLine("Invalid input. Please enter a number between 1 and 7.");
+                        InterfacePrinter.printGameMenu(_user, _computer, this);
+                        break;
+                }
+            }
+
+            public void Play()
+            {
+                InterfacePrinter.PrintWelcome();
+                PerformCoinToss();
+                InterfacePrinter.PrintMatchUp(_user.CurrentCard, _computer.CurrentCard);
+                if (_battleController.UserTurn == true)
+                {
+                    InterfacePrinter.printGameMenu(_user, _computer, this);
+                    UserMenuSwitch(_battleController);
+                }
+                else
+                {
+                    ComputerTakesTurn();
+                }
+            }
+
+
+            public void ComputerTakesTurn()
+            {
+                Console.WriteLine("The computer is taking its turn.");
+            }
+
+            public void ExitGame()
+            {
+                Environment.Exit(0);
+            }
+        }
+
 
         public enum PokemonType
         {
@@ -80,36 +291,8 @@ namespace PokemonTCGBattle
             }
         }
 
-        public class Pokemon
+        public class PokemonTypeHelper
         {
-            public string Name { get; private set; }
-            public int HP { get;  private set; }
-            public Attack[] Attacks { get; private set; }
-            public PokemonType PType { get; private set; }
-            public PokemonType? Weakness { get; private set; }
-            public PokemonType? Resistance { get; private set; }
-
-            public Pokemon(string name, int hp, Attack[] attacks, PokemonType pokemonType, PokemonType? weakness, PokemonType? resistance)
-            {
-                Name = name;
-                HP = hp;
-                Attacks = attacks;
-                PType = pokemonType;
-                Weakness = weakness;
-                Resistance = resistance;
-            }
-
-            public override string ToString()
-            {
-                return $"Name: {Name}\n" +
-                    $"HP: {HP}\n" +
-                    $"Attack[0]: {Attacks[0]}\n" +
-                    $"Attack[1]: Name - {Attacks[0].Name}, Description - {Attacks[0].Description}, Damage - {Attacks[0].Damage}\n" +
-                    $"PType: Name - {Attacks[1].Name}, Description - {Attacks[1].Description}, Damage - {Attacks[1].Damage}\n" +
-                    $"Weakness?: {Weakness}\n" +
-                    $"Resistance?: {Resistance}";
-            }
-
             public static PokemonType? CalculatePokemonWeakness(PokemonType pType)
             {
                 switch (pType)
@@ -194,6 +377,39 @@ namespace PokemonTCGBattle
             }
         }
 
+        public class Pokemon
+        {
+            public string Name { get; private set; }
+            public int HP { get;  private set; }
+            public Attack[] Attacks { get; private set; }
+            public PokemonType PType { get; private set; }
+            public PokemonType? Weakness { get; private set; }
+            public PokemonType? Resistance { get; private set; }
+            public string Status { get; set; }
+
+            public Pokemon(string name, int hp, Attack[] attacks, PokemonType pokemonType, PokemonType? weakness, PokemonType? resistance)
+            {
+                Name = name;
+                HP = hp;
+                Attacks = attacks;
+                PType = pokemonType;
+                Weakness = weakness;
+                Resistance = resistance;
+                Status = "Standing";
+            }
+
+            public override string ToString()
+            {
+                return $"Name: {Name}\n" +
+                    $"HP: {HP}\n" +
+                    $"Attack[0]: {Attacks[0]}\n" +
+                    $"Attack[1]: Name - {Attacks[0].Name}, Description - {Attacks[0].Description}, Damage - {Attacks[0].Damage}\n" +
+                    $"PType: Name - {Attacks[1].Name}, Description - {Attacks[1].Description}, Damage - {Attacks[1].Damage}\n" +
+                    $"Weakness?: {Weakness}\n" +
+                    $"Resistance?: {Resistance}";
+            }
+        }
+
         public class Card {
             public Pokemon CardsPokemon { get; private set; }
 
@@ -207,24 +423,24 @@ namespace PokemonTCGBattle
                 string cardDelineator = "-------------------------------------------\n";
                 string miniDeliniator = "-----\n";
 
-                WriteSlowly(cardDelineator, 20);
+                AnimationService.WriteSlowly(cardDelineator, 20);
                 Console.WriteLine($"{CardsPokemon.Name} - HP:{CardsPokemon.HP}");
-                WriteSlowly(miniDeliniator, 20);
+                AnimationService.WriteSlowly(miniDeliniator, 20);
                 foreach (Attack attack in CardsPokemon.Attacks){
-                    WriteSlowly(attack.Name + "\n\n", 20);
+                    AnimationService.WriteSlowly(attack.Name + "\n\n", 20);
                     Console.WriteLine(attack.Description + "\n");
                     Console.WriteLine($"DMG:{attack.Damage}");
-                    WriteSlowly(miniDeliniator, 20);
+                    AnimationService.WriteSlowly(miniDeliniator, 20);
                 }
                 string resistance = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Resistance}";
                 string weakness = CardsPokemon.Resistance == null ? "N/A" : $"{CardsPokemon.Weakness}";
                 Console.WriteLine($"Type: {CardsPokemon.PType}\n" +
                  $"Weakness: {weakness}\n" +
                  $"Resistance: {resistance}");
-                WriteSlowly(cardDelineator, 20);
+                AnimationService.WriteSlowly(cardDelineator, 20);
             }
         }
-
+        
         public class Dealer
         {
             public Pokemon[] Deal(Pokemon[] pokemonArray, Random rnd)
@@ -250,19 +466,33 @@ namespace PokemonTCGBattle
             }
         }
 
-        public class JsonConverter
+        public class JsonParser
         {
-            
-            public string JsonString { get; private set; }
-
-            public JsonConverter(string path, string fileName)
+            private string path;
+            private string fileName;
+            public JsonParser(string path, string fileName)
             {
-                JsonString = File.ReadAllText(path + fileName);
+                this.path = path;
+                this.fileName = fileName;
             }
 
-            public Pokemon[] JsonToPokemonArray()
+            public string FileToJsonString() {
+
+                return File.ReadAllText(path + fileName);
+            }
+        }
+
+        public class JsonToPokemonConverter
+        {
+            private string jsonString;
+            public JsonToPokemonConverter(string jsonString)
             {
-                JsonNode jsonPokemonArrayString = JsonNode.Parse(JsonString);
+               this.jsonString = jsonString;
+            }
+
+            public Pokemon[] JsonStringToPokemonArray()
+            {
+                JsonNode jsonPokemonArrayString = JsonNode.Parse(jsonString);
                 Pokemon[] pokemonArray = new Pokemon[jsonPokemonArrayString.AsArray().Count()];
                 int count = 0;
                 foreach(JsonNode jNode in jsonPokemonArrayString.AsArray())
@@ -278,9 +508,9 @@ namespace PokemonTCGBattle
                        Attacks[counter2] = new Attack(attack["Description"].GetValue<string>(), Int32.Parse(attack["Damage"].GetValue<string>()), attack["Name"].GetValue<string>());
                        counter2++;
                     }
-                    PokemonType PType = (PokemonType) Pokemon.ReturnPokemonType(jNode["type"].GetValue<string>());
-                    PokemonType? Weakness = Pokemon.CalculatePokemonWeakness(PType);
-                    PokemonType? Resistance = Pokemon.CalculatePokemonResistance(PType);
+                    PokemonType PType = (PokemonType) PokemonTypeHelper.ReturnPokemonType(jNode["type"].GetValue<string>());
+                    PokemonType? Weakness = PokemonTypeHelper.CalculatePokemonWeakness(PType);
+                    PokemonType? Resistance = PokemonTypeHelper.CalculatePokemonResistance(PType);
 
                     pokemonArray[count] = new Pokemon(Name, HP, Attacks, PType, Weakness, Resistance);
 
@@ -290,72 +520,76 @@ namespace PokemonTCGBattle
             }
         }
 
-        public class User
+        interface IPLayer
         {
-            public Card[] UserCards { get; private set; }
-            public User(Card[] userCards)
+            Card[] PlayerCards { get; set; }
+            Card CurrentCard { get; set; }
+        }
+
+        public class User:IPLayer
+        {
+            public Card[] PlayerCards { get; set; }
+            public Card CurrentCard { get; set; }
+            public User()
             {
-                UserCards = userCards;
             }
         }
 
-        public class Computer
+        public class Computer: IPLayer
         {
-            public Card[] ComputerCards { get; private set; }
-            public Computer(Card[] computerCards)
+            public Card[] PlayerCards { get; set; }
+            public Card CurrentCard { get; set; }
+            public Computer()
             {
-                ComputerCards = computerCards;
+            }
+        }
+
+        public class GameInitializer
+        {
+            public static void InitializeGame(Pokemon[] pokemonArray, User user, Computer computer, GameFlowController gameController, Dealer dealer, Random rnd)
+            {
+                Pokemon[] userPokemon = dealer.Deal(pokemonArray, rnd);
+                Pokemon[] computerPokemon = dealer.Deal(pokemonArray, rnd);
+                CreateCards(userPokemon, computerPokemon, user, computer, gameController);
+            }
+
+            private static void CreateCards(Pokemon[] userPokemon, Pokemon[] computerPokemon, User user, Computer computer, GameFlowController gameController)
+            {
+                Card[] userCards = userPokemon.Select(p => new Card(p)).ToArray();
+                Card[] computerCards = computerPokemon.Select(p => new Card(p)).ToArray();
+
+                user.PlayerCards = userCards;
+                computer.PlayerCards = computerCards;
+                user.CurrentCard = user.PlayerCards[0];
+                computer.CurrentCard = computer.PlayerCards[0];
             }
         }
 
         static void Main(string[] args)
         {
-            Pokemon[] userPokemon;
-            Pokemon[] computerPokemon;
-            
             const string fileName = @"\PokemonCardData.json";
             const string path = @"C:\Users\rory_\source\repos\PokemonTCGBattle\";
-            JsonConverter jsonConverter = new JsonConverter(path, fileName);
 
-            Pokemon[] pokemonArray = jsonConverter.JsonToPokemonArray();
+            JsonParser jsonParser = new JsonParser(path, fileName);
+            string jsonString = jsonParser.FileToJsonString();
+            JsonToPokemonConverter jsonConverter = new JsonToPokemonConverter(jsonString);
+            Pokemon[] pokemonArray = jsonConverter.JsonStringToPokemonArray();
 
-            //Debugging Code
-            /*foreach(Pokemon p in pokemonArray)
-            {
-               Console.WriteLine(p.ToString());
-               Console.WriteLine();
-            }*/
-            //Console.Read();
-                        
-            Menu.PrintMenu();
+            User user = new User();
+            Computer computer = new Computer();
+            BattleController battleController = new BattleController(user);
+            GameFlowController gameController = new GameFlowController(user, computer, battleController);
             Random rnd = new Random();
             Dealer dealer = new Dealer();
-            userPokemon = dealer.Deal(pokemonArray, rnd);
-            computerPokemon = dealer.Deal(pokemonArray, rnd);
-            Card[] userCards = new Card[5];
-            Card[] computerCards = new Card[5];
-            for (int i = 0; i < 5; i++)
-            {
-                userCards[i] = new Card(userPokemon[i]);
-                computerCards[i] = new Card(computerPokemon[i]);
-            }
-            User user = new User(userCards);
-            Computer computer = new Computer(computerCards);
-            Menu.PrintUserCards(userCards);
-            
-
-
-            //Debugging Code
-            /*foreach(Pokemon p in userPokemon)
-            {
-                Console.WriteLine(p.Name);
-            }
-            Console.WriteLine("--------------------------------------------");
-            foreach(Pokemon p in computerPokemon)
-            {
-                Console.WriteLine(p.Name);
-            }*/
+            GameInitializer.InitializeGame(pokemonArray, user, computer, gameController, dealer, rnd);
+            gameController.Play();
             Console.Read();
         }
     }
 }
+
+//GameInterface
+//-Prints the interface for the game.
+//GameController
+//-Controls the flow of the game accpeting information from the user and sending it to the User and Computer classes
+//-User and computer classes perform their own actions. They should inherit interfaces to enforce the methods they must have.
