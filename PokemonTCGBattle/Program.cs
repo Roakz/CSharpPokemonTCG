@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.IO;
 using System.Media;
 using static PokemonTCGBattle.Program;
+using System.Collections.Concurrent;
 
 namespace PokemonTCGBattle
 {
@@ -51,9 +52,10 @@ namespace PokemonTCGBattle
                     "\nPress any key to begin to play!");
                 Console.ReadLine();
                 Console.Clear();
-                Console.WriteLine("You will be dealt 5 Pokemon cards at random to battle the computer.\n\n" +
+                Console.WriteLine("Your Cards have been loaded from JSON!\n\n" +
+                    "You will be dealt 5 Pokemon cards at random to battle the computer.\n\n" +
                     "Then the battle will begin!!!\n\n" +
-                    "Press any key to recieve your cards.");
+                    "Press any key to initiate coin toss and recieve your cards.");
                 Console.ReadLine();
                 Console.Clear();
             }
@@ -93,8 +95,8 @@ namespace PokemonTCGBattle
             public static void PrintCoinTossMenu()
             {
                 Console.WriteLine("Please enter your selection:\n" +
-                                  "1. Heads\n" +
-                                  "2. Tails\n");
+                                  "\n1. Heads\n" +
+                                  "\n2. Tails\n");
             }
 
             public static void PrintCoinTossResult(Boolean userTurn) {
@@ -118,9 +120,8 @@ namespace PokemonTCGBattle
                     "4. Switch Pokemon\n" +
                     "5. Choose Attack\n" +
                     "6. Print Match Up\n" +
-                    "7. Retreat\n" +
-                    "8. Exit Game\n" +
-                    "9. Potion reminder" +
+                    "7. Apply potion\n" +
+                    "8. Quit" +
                     "Please enter the number of the option you would like to select: ");
             }
 
@@ -168,14 +169,18 @@ namespace PokemonTCGBattle
         public class BattleController {
 
             public Boolean UserTurn { get; set; }
+            public int UserPotions { get; private set; }
+            public int ComputerPotions { get; private set; }
             private readonly User _user;
             private readonly Computer _computer;
 
-            public BattleController(User user, Computer computer)
+            public BattleController(User user, Computer computer, int potionAllocation)
             {
                 _user = user;
                 UserTurn = false;
                 _computer = computer;
+                UserPotions = potionAllocation;
+                ComputerPotions = potionAllocation;
             }
 
             public void SwitchPokemonCard(int index, IPlayer user)
@@ -309,6 +314,26 @@ namespace PokemonTCGBattle
                     Console.WriteLine("\nThe attack failed to make contact!!");
                 }
             }
+
+            public void ApplyPotion(IPlayer player)
+            {
+                int potionApplied = player.CurrentCard.CardsPokemon.HP + 50;
+                int pokemonsMaxHp = player.CurrentCard.HP;
+                player.CurrentCard.CardsPokemon.HP = potionApplied < pokemonsMaxHp ? potionApplied : pokemonsMaxHp;
+
+                if(player.GetType() == typeof(Computer))
+                {
+                    ComputerPotions -= 1;
+                }else {
+                    UserPotions -= 1;
+                }
+
+                AnimationService.Animate("Applying a potion", "...", true);
+                Console.WriteLine($"\nPotion applied to: {player.CurrentCard.CardsPokemon.Name}. Hp is now: {player.CurrentCard.CardsPokemon.HP}\n");
+                AnimationService.Animate("Switching turns", "...", false);
+                UserTurnSwitch();
+            }
+            
         }
         public class GameFlowController
         {
@@ -371,7 +396,16 @@ namespace PokemonTCGBattle
                         InterfacePrinter.PrintMatchUp(_user.CurrentCard, _computer.CurrentCard);
                         break;
                     case "7":
-                        break;
+                        if(_battleController.UserPotions > 0)
+                        {
+                            _battleController.ApplyPotion(_user);
+                            Console.Clear();
+                            InterfacePrinter.PrintMatchUp(_user.CurrentCard, _computer.CurrentCard);
+                        }else
+                        {
+                            Console.WriteLine("\nNo Potions available! Pick another option!\n");
+                        }
+                            break;
                     case "8":
                         ExitGame();
                         break;
@@ -562,10 +596,12 @@ namespace PokemonTCGBattle
 
         public class Card {
             public Pokemon CardsPokemon { get; private set; }
+            public int HP { get; private set; }
 
             public Card(Pokemon pokemon)
             {
                 CardsPokemon = pokemon;
+                HP = pokemon.HP;
             }
 
             public void PrintCard()
@@ -728,7 +764,7 @@ namespace PokemonTCGBattle
 
             User user = new User();
             Computer computer = new Computer();
-            BattleController battleController = new BattleController(user, computer);
+            BattleController battleController = new BattleController(user, computer, 2);
             GameFlowController gameController = new GameFlowController(user, computer, battleController);
             Random rnd = new Random();
             Dealer dealer = new Dealer();
