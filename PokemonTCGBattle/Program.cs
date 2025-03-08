@@ -195,14 +195,22 @@ namespace PokemonTCGBattle
 
             public void TakeComputerTurn()
             {
-                Random rnd = new Random();
-                int attackIndex = rnd.Next(0, _computer.CurrentCard.CardsPokemon.Attacks.Length);
-                Attack(attackIndex);
-                Console.WriteLine("\nPress any key to continue.");
-                Console.ReadLine();
-                AnimationService.Animate("Pokmemon checkup in progress", "...", true);
-                PokemonCheckup(_user);
-                UserTurnSwitch();
+                Boolean hpHalfOrLess = (_computer.CurrentCard.HP - _computer.CurrentCard.HP / 2) >= _computer.CurrentCard.CardsPokemon.HP;
+                if( hpHalfOrLess == true)
+                {
+                    ApplyPotion(_computer);
+                }
+                else
+                {
+                    Random rnd = new Random();
+                    int attackIndex = rnd.Next(0, _computer.CurrentCard.CardsPokemon.Attacks.Length);
+                    Attack(attackIndex);
+                    Console.WriteLine("\nPress any key to continue.");
+                    Console.ReadLine();
+                    AnimationService.Animate("Pokmemon checkup in progress", "...", true);
+                    PokemonCheckup(_user);
+                    UserTurnSwitch();
+                }
             }
 
             public void TakeUserTurn(int attackIndex) {
